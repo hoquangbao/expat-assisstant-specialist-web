@@ -11,7 +11,7 @@ import logo from '../images/SaigonExpat.png'
 
 
 const { Header, Content, Footer, Sider } = Layout;
-const { Text } = Typography
+const { Text, Title } = Typography
 const { Panel } = Collapse;
 const { SubMenu } = Menu;
 const { Search } = Input;
@@ -29,6 +29,7 @@ export default function NewSession() {
   const [endTime1, setEndTime1] = useState();
   const [currentDate, setCurrentDate] = useState();
   const [calendar, setCalendar] = useState();
+  const [loading, setLoading] = useState(false);
 
   const [sessionForm] = Form.useForm()
 
@@ -91,16 +92,18 @@ export default function NewSession() {
   function getListData(value) {
     const data = value.format('YYYY/MM/DD')
     let listData;
-    for (let index = 0; index < appointmentData.length; index++) {
-      const element = appointmentData[index];
-      const startDate = element.startTime;
-      const date1 = padLeft(startDate[1], 2, '0')
-      const date2 = padLeft(startDate[2], 2, '0')
-      const formatedDate = startDate[0] + "/" + date1 + "/" + date2;
-      if (data == formatedDate) {
-        listData = [
-          { type: 'warning', content: 'You have appoiment on this day', },
-        ];
+    if (loading == false && appointmentData !== undefined) {
+      for (let index = 0; index < appointmentData.length; index++) {
+        const element = appointmentData[index];
+        const startDate = element.startTime;
+        const date1 = padLeft(startDate[1], 2, '0')
+        const date2 = padLeft(startDate[2], 2, '0')
+        const formatedDate = startDate[0] + "/" + date1 + "/" + date2;
+        if (data == formatedDate) {
+          listData = [
+            { type: 'warning', content: 'You have appoiment on this day', },
+          ];
+        }
       }
     }
     // switch (data) {
@@ -241,7 +244,7 @@ export default function NewSession() {
       ...appointmentModalData,
     }
     async function createSession() {
-
+      setLoading(true);
       try {
         const result = await axios.post('https://hcmc.herokuapp.com/api/session/create', {
           "endTime": appointmentEndDate,
@@ -256,7 +259,7 @@ export default function NewSession() {
           console.log("success")
           // setAppointmentData(() =>
           //   appointmentData.map(row => {
-          //     if (row.id === appointmentModalData.id) {
+          //     if (row.id === appointmentData.id) {
           //       return {
           //         ...row,
           //         ...values
@@ -265,6 +268,7 @@ export default function NewSession() {
           //     return row
           //   })
           // )
+          setLoading(false);
           setIsModalVisible(false)
         } else {
           message.error({
@@ -307,6 +311,12 @@ export default function NewSession() {
         <Menu theme="dark" mode="inline" defaultSelectedKeys={['4']}>
           <Menu.Item key="1" icon={<VideoCameraOutlined />}>
             <Link to="/appointment">Appointment</Link>
+          </Menu.Item>
+          <Menu.Item key="2" icon={<VideoCameraOutlined />}>
+            <Link to="/myappointment">Appointment History</Link>
+          </Menu.Item>
+          <Menu.Item key="3" icon={<VideoCameraOutlined />}>
+            <Link to="/mysession">My Session</Link>
           </Menu.Item>
         </Menu>
       </Sider>
@@ -377,6 +387,7 @@ export default function NewSession() {
                 </div>
               </Form>
             </Modal>
+            <Title level={3}>My Session</Title>
             <Calendar dateCellRender={dateCellRender} monthCellRender={monthCellRender} onSelect={showModal} />
           </div>
         </Content>

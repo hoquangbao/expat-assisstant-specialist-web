@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios';
-import { Layout, Menu, Button, Typography, Modal, Input, Form, Upload, message } from 'antd';
+import { Layout, Menu, Button, Typography, Modal, Input, Form, Upload, message, Row } from 'antd';
+import { Link } from 'react-router-dom'
 import { Redirect } from 'react-router';
 import { history } from '../history';
 import logo from '../images/Untitled 2.png'
 import jwt_decode from "jwt-decode";
+
+const { Text } = Typography
 
 function LoginForm({ props }) {
   const [user, setUser] = useState({ email: "", password: "" });
@@ -71,11 +74,12 @@ function LoginForm({ props }) {
   }
 
 
-  useEffect(() => {
-    if (redirect == true) {
-      return <Redirect to="/appointment" />
-    };
-  })
+  // useEffect(() => {
+  //   const token = localStorage.getItem('token')
+  //   if (token !== 'fail' || token !== "" || token !== undefined) {
+  //     history.push('/appointment')
+  //   };
+  // })
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '70vh' }}>
@@ -111,14 +115,28 @@ function LoginForm({ props }) {
           <Input.Password />
         </Form.Item>
 
-        <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-          <Button
-            key="submit"
-            form="loginForm"
-            type="primary"
-            htmlType="submit">
-            Submit
-          </Button>
+        <Form.Item wrapperCol={{ offset: 8, span: 16 }} >
+          <Row style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <Button
+              key="submit"
+              form="loginForm"
+              style={{ width: 200 }}
+              type="primary"
+              htmlType="submit">
+              Submit
+            </Button>
+          </Row>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingTop: 40 }}>
+            <Text>
+              Or
+            </Text>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingTop: 40 }}>
+            <Text>
+              Don't havve an account?
+            </Text>
+            <Link to="/register"> Register</Link>
+          </div>
         </Form.Item>
       </Form>
     </div>

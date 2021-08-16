@@ -14,7 +14,7 @@ const { SubMenu } = Menu;
 const { Search } = Input;
 const { Text, Title } = Typography
 
-export default function Appointment() {
+export default function MyAppointment() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [appointmentData, setAppointmentData] = useState([]);
   const [startTime, setStartTime] = useState([]);
@@ -98,15 +98,23 @@ export default function Appointment() {
           //   ...appointment
           // }))
           // const tableData1 = []
+          var m = new Date();
+          const getMonth = padLeft((m.getMonth() + 1), 2, '0')
+          const getUTCDate = padLeft(m.getUTCDate(), 2, '0')
+          var dateString = m.getFullYear() + "" + getMonth + "" + getUTCDate
           res.data.forEach(element => {
-            if (element.channelName != null || element.channelName != undefined) {
-              if (element.status == 1) {
-                setAppointmentData(appointmentData => [...appointmentData, element.session])
-              }
+            const endDate = element.session.endTime
+            const date1 = padLeft(endDate[1], 2, '0')
+            const date2 = padLeft(endDate[2], 2, '0')
+            var endDate1 = endDate[0] + "" + date1 + "" + date2
+            if (endDate1 < dateString) {
+              setAppointmentData(appointmentData => [...appointmentData, element.session])
             }
+            console.log("end date", endDate1)
           });
           // setAppointmentData(tableData)
           console.log(res)
+          console.log("current Date: ", dateString)
         }).catch(error => {
           console.log(error)
         })
@@ -166,7 +174,7 @@ export default function Appointment() {
         <Header className="site-layout-sub-header-background" style={{ padding: 0 }} />
         <Content style={{ margin: '24px 16px 0' }}>
           <div className="site-layout-background" style={{ padding: 24, minHeight: 360 }}>
-            <Title level={3}>My Appointment</Title>
+            <Title level={3}>Appointment History</Title>
             <Table columns={columns} dataSource={appointmentData} />
           </div>
         </Content>
