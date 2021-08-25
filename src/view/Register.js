@@ -6,6 +6,7 @@ import { history } from '../history';
 import logo from '../images/Untitled 2.png'
 import jwt_decode from "jwt-decode";
 import TextArea from 'antd/lib/input/TextArea';
+import { register } from "../firebase/auth"
 
 const { Text } = Typography
 const { Option } = Select
@@ -28,6 +29,7 @@ function Register({ props }) {
       languages.push(el);
     });
     const data = {
+      "avartar": "https://firebasestorage.googleapis.com/v0/b/master-vietnamese.appspot.com/o/expat%2Fuser.png?alt=media&token=b8ddb06c-347e-419b-95e7-d28a30d93c1a",
       "biography": values.biography,
       "email": values.email,
       "fullname": values.fullname,
@@ -39,8 +41,12 @@ function Register({ props }) {
       ],
       "password": values.password
     }
+    const createAccountFirebase = {
+      email: values.email,
+      password: values.password
+    }
     console.log(data)
-    async function register() {
+    async function registerAccount() {
       try {
         await axios.post('https://hcmc.herokuapp.com/api/spec/signup', data
         ).then(res => {
@@ -56,6 +62,7 @@ function Register({ props }) {
                 }
               })
             } else {
+              register(createAccountFirebase)
               history.push('/')
             }
           } else {
@@ -74,7 +81,7 @@ function Register({ props }) {
         console.log(e)
       }
     }
-    register();
+    registerAccount();
   }
 
   useEffect(() => {

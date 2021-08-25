@@ -6,6 +6,7 @@ import { Redirect } from 'react-router';
 import { history } from '../history';
 import logo from '../images/Untitled 2.png'
 import jwt_decode from "jwt-decode";
+import { login } from "../firebase/auth"
 
 const { Text } = Typography
 
@@ -29,7 +30,7 @@ function LoginForm({ props }) {
       password: values.password
     }
 
-    async function login() {
+    async function loginAccount() {
       try {
         await axios.post('https://hcmc.herokuapp.com/api/spec/login', data).then(res => {
           localStorage.setItem('token', res.data.token)
@@ -51,6 +52,7 @@ function LoginForm({ props }) {
               var decode = jwt_decode(token);
               var id = decode['spec-id']
               localStorage.setItem('id', id)
+              login(values.email, values.password)
               history.push('/appointment')
             }
           } else {
@@ -69,7 +71,7 @@ function LoginForm({ props }) {
         console.log(e)
       }
     }
-    login();
+    loginAccount();
 
   }
 

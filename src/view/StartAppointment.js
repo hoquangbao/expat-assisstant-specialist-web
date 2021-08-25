@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import AgoraRTC from "agora-rtc-sdk";
-import { Button, Avatar, Typography, Space, Spin, Image, Badge, message } from 'antd';
+import { Button, Avatar, Typography, Space, Spin, Image, Badge, message, notification } from 'antd';
 import { PhoneOutlined, SoundOutlined, AudioOutlined, UserOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import Countdown from 'react-countdown';
@@ -29,15 +29,10 @@ function StartAppointment(props) {
     params: {}
   };
 
+  const tokeId = window.location.pathname.split('/').reverse()[0]
+
   // Options for joining a channel
-  var option = {
-    appID: "9aff35de497443c9be8469665d87176b",
-    channel: "baobao",
-    uid: localStorage.getItem('uid'),
-    token: localStorage.getItem('callToken'),
-    key: '',
-    secret: ''
-  }
+
 
   rtc.client = AgoraRTC.createClient({ mode: "rtc", codec: "h264" });
 
@@ -46,100 +41,6 @@ function StartAppointment(props) {
 
   const token = localStorage.getItem('token')
 
-  // function joinChannel(role) {
-  //   // Create a client
-  //   rtc.client = AgoraRTC.createClient({ mode: "rtc", codec: "h264" });
-  //   // Initialize the client
-  //   rtc.client.init(option.appID, function () {
-  //     console.log("init success");
-
-  //     // Join a channel
-  //     rtc.client.join(option.token ?
-  //       option.token : null,
-  //       option.channel, option.uid ? +option.uid : null, function (uid) {
-  //         console.log("join channel: " + option.channel + " success, uid: " + uid);
-  //         rtc.params.uid = uid;
-  //         rtc.remoteStreams = AgoraRTC.createStream({
-  //           streamID: rtc.params.uid,
-  //           audio: true,
-  //           video: false,
-  //           screen: false,
-  //         })
-
-  //         if (role === "host") {
-  //           rtc.client.setClientRole("host");
-  //           // Create a local stream
-
-  //           // Initialize the local stream
-  //           rtc.remoteStreams.init(function () {
-  //             console.log("init local stream success");
-  //             rtc.remoteStreams.play("local_stream");
-  //             rtc.client.publish(rtc.remoteStreams, function (err) {
-  //               console.log("publish failed");
-  //               console.error(err);
-  //             })
-  //           }, function (err) {
-  //             console.error("init local stream failed ", err);
-  //           });
-
-  //           rtc.client.on("connection-state-change", function (evt) {
-  //             console.log("audience", evt)
-  //           });
-
-  //           rtc.client.on("stream-subscribed", function (evt) {
-  //             var stream = evt.stream;
-  //             // Sets the volume of the remote stream to 50.
-  //             stream.setAudioVolume(400);
-  //           });
-
-  //           rtc.client.on("connection-state-change", function (evt) {
-  //             console.log("audience", evt)
-  //           })
-
-  //           rtc.client.on("stream-added", function (evt) {
-  //             var remoteStream = evt.stream;
-  //             var id = remoteStream.getId();
-  //             if (id !== rtc.params.uid) {
-  //               rtc.client.subscribe(remoteStream, function (err) {
-  //                 console.log("stream subscribe failed", err);
-  //               })
-  //             }
-  //             console.log('stream-added remote-uid: ', id);
-  //           });
-
-  //           rtc.client.on("stream-removed", function (evt) {
-  //             var remoteStream = evt.stream;
-  //             var id = remoteStream.getId();
-
-  //             console.log('stream-removed remote-uid: ', id);
-  //           });
-
-  //           rtc.client.on("stream-subscribed", function (evt) {
-  //             var remoteStream = evt.stream;
-  //             var id = remoteStream.getId();
-  //             remoteStream.play("remote_video_");
-  //             setOnline(true)
-  //             console.log('isOnline')
-  //             console.log('stream-subscribed remote-uid: ', id);
-  //           })
-
-  //           rtc.client.on("stream-unsubscribed", function (evt) {
-  //             var remoteStream = evt.stream;
-  //             var id = remoteStream.getId();
-  //             remoteStream.pause("remote_video_");
-  //             console.log('stream-unsubscribed remote-uid: ', id);
-  //           })
-
-  //         }
-
-  //       }, function (err) {
-  //         console.error("client join failed", err)
-  //       })
-
-  //   }, (err) => {
-  //     console.error(err);
-  //   });
-  // }
 
   function leaveEventHost(params) {
     rtc.client.unpublish(rtc.remoteStreams, function (err) {
@@ -167,6 +68,7 @@ function StartAppointment(props) {
         console.log(miliminutes)
         setCallTime(miliminutes)
       }
+      window.close()
     } else {
       message.error('Expat still in the room, you cannot quit now');
     }
@@ -188,7 +90,7 @@ function StartAppointment(props) {
     }
   };
 
-  async function calculateTime() {
+  async function calculateTime(appointmetData) {
     setLoading(false);
     // var startTime = moment();
     // var endTime = mo
@@ -202,33 +104,35 @@ function StartAppointment(props) {
 
     var m = new Date();
     const getMonth = padLeft((m.getMonth() + 1), 2, '0')
-    const getUTCDate = padLeft(m.getUTCDate(), 2, '0')
+    const getUTCDate = padLeft(m.getDate(), 2, '0')
     const getHours = padLeft(m.getHours(), 2, '0')
     const getMinutes = padLeft(m.getMinutes(), 2, '0')
-    var dateString = m.getFullYear() + "" + getMonth + "" + getUTCDate + "" + getHours + "" + getMinutes;
-    var startTime = moment(dateString, "YYYYMMDDhhmm");
+    const getSecond = padLeft(m.getSeconds(), 2, 0)
+    var dateString = m.getFullYear() + "" + getMonth + "" + getUTCDate + "" + getHours + "" + getMinutes + getSecond;
+    var startTime = moment(dateString, "YYYYMMDDhhmmss");
     // var endDate = [2021, 8, 13, 21, 45]
-    const appointmetData = await fetchAppointment();
-    console.log(appointmetData)
-    if (appointmetData !== undefined) {
-      const endDate = appointmetData.session.endTime
-      const date1 = padLeft(endDate[1], 2, '0')
-      const date2 = padLeft(endDate[2], 2, '0')
-      const date3 = padLeft(endDate[3], 2, '0')
-      const date4 = padLeft(endDate[4], 2, '0')
-      var endDate1 = endDate[0] + "" + date1 + "" + date2 + "" + date3 + "" + date4
-      var endTime = moment(endDate1, "YYYYMMDDhhmm");
-      var duration = moment.duration(endTime.diff(startTime));
-      var day = parseInt(duration.asDays()) * 24 * 60 * 60 * 1000;
-      var hours = parseInt(duration.asHours()) * 60 * 60 * 1000;
-      var miliminutes = (parseInt(duration.asMinutes())) * 60 * 1000;
-      var total = hours + miliminutes + hours + day
-      setMilSecond(total)
-      console.log('time', total)
-      await joinChannel(role)
-      setLoading(true)
-    }
+    console.log("innnnnnnnnnnnnnnn")
+    const endDate = appointmetData.session.endTime
+    const date1 = padLeft(endDate[1], 2, '0')
+    const date2 = padLeft(endDate[2], 2, '0')
+    const date3 = padLeft(endDate[3], 2, '0')
+    const date4 = padLeft(endDate[4], 2, '0')
+    var endDate1 = endDate[0] + "" + date1 + "" + date2 + "" + date3 + "" + date4 + "00"
+    var endTime = moment(endDate1, "YYYYMMDDhhmmss");
+    var duration = moment.duration(endTime.diff(startTime));
+    // var day = parseInt(duration.asDays()) * 24 * 60 * 60 * 1000;
+    // var hours = parseInt(duration.asHours()) * 60 * 60 * 1000;
+    // var miliminutes = (parseInt(duration.asMinutes())) * 60 * 1000;
+    var total = parseInt(duration.asMilliseconds())
+    setMilSecond(total)
+    console.log(endDate1)
+    console.log('time', total)
+    localStorage.setItem("timtime,", total)
+    joinChannel(role, appointmetData.channelName)
+    setLoading(true)
   }
+
+  console.log(milSecond)
 
 
   const diffTime = localStorage.getItem('time')
@@ -243,8 +147,16 @@ function StartAppointment(props) {
   }
 
 
-
-  async function joinChannel(role) {
+  async function joinChannel(role, appointment) {
+    console.log(localStorage.getItem('callToken'))
+    console.log("local uid", localStorage.getItem('uid'))
+    var option = {
+      appID: "9aff35de497443c9be8469665d87176b",
+      channel: appointment,
+      uid: localStorage.getItem('uid'),
+      token: localStorage.getItem('callToken'),
+    }
+    console.log("option", option)
     var startTime = moment();
     // Create a client
 
@@ -332,9 +244,17 @@ function StartAppointment(props) {
               console.log('stream-unsubscribed remote-uid: ', id);
             })
 
+            rtc.client.on('peer-online', function (evt) {
+              console.log('peer-online', evt.uid);
+              setUserJoin(true);
+              setOnline(true)
+              message.success('Expat has joined');
+              startTime = moment()
+              setStartTime(startTime)
+            });
+
             rtc.client.on("peer-leave", function (evt) {
               var remoteStream = evt.stream;
-              var id = remoteStream.getId();
               setOnline(false)
               setUserJoin(false);
               var endTime1 = moment()
@@ -347,7 +267,6 @@ function StartAppointment(props) {
                 setCallTime(miliminutes)
               }
               message.error('Expat has quit');
-              console.log('user leave', id);
             })
 
           }
@@ -361,19 +280,20 @@ function StartAppointment(props) {
         console.log("Joined user: ", user)
       })
 
-    }, (err) => {
-      console.error(err);
+    }, (er) => {
+      console.error(er);
     });
   }
 
   async function fetchAppointment() {
     var tableData = {}
     try {
-      await axios.get(`https://hcmc.herokuapp.com/api/appointment/44`,
+      await axios.get(`https://hcmc.herokuapp.com/api/appointment/${tokeId}`,
         { headers: { "content-type": "application/json", "Authorization": `Bearer ${token}` }, },
       ).then(res => {
         tableData = res.data
         setAppointment(tableData)
+        console.log("done")
       }).catch(error => {
         console.log(error)
       })
@@ -383,50 +303,84 @@ function StartAppointment(props) {
     return tableData
   }
 
+  console.log(appointment)
 
 
   useEffect(() => {
     var randomNum = Math.floor(1000 + Math.random() * 9000);
     localStorage.setItem('uid', randomNum)
     console.log(localStorage.getItem('uid'))
-    const channelName = 'baobao';
-    const expirationTime = 7200;
-    const role1 = 1;
-    var bodyFormData = new FormData();
-    bodyFormData.append('channelName', channelName);
-    bodyFormData.append('expirationTimeInSeconds', expirationTime);
-    bodyFormData.append('role', role1);
-    bodyFormData.append('uid', randomNum);
-    setUserJoin(false)
+    var channelName = '';
     async function fetchCall() {
       try {
-        await axios.post(`https://hcmc.herokuapp.com/api/agora/rtc`,
-          { headers: { "content-type": "application/json", "Authorization": `Bearer ${token}` }, },
-          {
-            params: {
-              channelName: 'baobao',
-              expirationTimeInSeconds: 7200,
-              role: 1,
-              uid: randomNum
-            },
-          }
-        ).then(res => {
-          const tableData = res.data.token
-          localStorage.setItem('callToken', tableData)
-          setCallToken(tableData)
-        }).catch(error => {
-          console.log(error)
-        })
+        const appointment = await fetchAppointment()
+        var m = new Date();
+        const getMonth = padLeft((m.getMonth() + 1), 2, '0')
+        const getUTCDate = padLeft(m.getDate(), 2, '0')
+        const hour = padLeft(m.getHours(), 2, 0)
+        const minute = padLeft(m.getMinutes(), 2, 0)
+        var currentDate = m.getFullYear() + "" + getMonth + "" + getUTCDate + "" + hour + "" + minute
+        const startTime = appointment.session.startTime
+        const date1 = padLeft(startTime[1], 2, '0')
+        const date2 = padLeft(startTime[2], 2, '0')
+        const date3 = padLeft(startTime[3], 2, '0')
+        const date4 = padLeft(startTime[4], 2, '0')
+        var startDate1 = startTime[0] + "" + date1 + "" + date2 + "" + date3 + "" + date4
+        const endDate = appointment.session.endTime
+        const date5 = padLeft(endDate[1], 2, '0')
+        const date6 = padLeft(endDate[2], 2, '0')
+        const date7 = padLeft(endDate[3], 2, '0')
+        const date8 = padLeft(endDate[4], 2, '0')
+        var endDate1 = endDate[0] + "" + date5 + "" + date6 + "" + date7 + "" + date8
+        if ((currentDate - startDate1 >= 0) && (currentDate - endDate1 <= 0)) {
+          await axios.post(`https://hcmc.herokuapp.com/api/agora/rtc`,
+            { headers: { "content-type": "application/json", "Authorization": `Bearer ${token}` }, },
+            {
+              params: {
+                channelName: appointment.channelName,
+                expirationTimeInSeconds: 7200,
+                role: 1,
+                uid: randomNum
+              },
+            }
+          ).then(res => {
+            console.log(res)
+            const tableData = res.data.token
+            localStorage.setItem('callToken', tableData)
+            setCallToken(tableData)
+
+          }).catch(error => {
+            console.log(error)
+          })
+          calculateTime(appointment);
+        } else {
+          openNotification()
+        }
       } catch (e) {
         console.log(e)
       }
 
     }
     fetchCall();
-    calculateTime()
+
+
   }, [])
 
-  console.log(appointment)
+  const openNotification = () => {
+    const key = `open${Date.now()}`;
+    const btn = (
+      <Button type="primary" size="small" onClick={() => window.close()}>
+        Confirm
+      </Button>
+    );
+    notification.open({
+      message: 'Your appointment not started',
+      description:
+        'The appointment may not started yet or time has expired',
+      btn,
+      duration: 0
+    });
+  };
 
   if (loading == false) {
     return (

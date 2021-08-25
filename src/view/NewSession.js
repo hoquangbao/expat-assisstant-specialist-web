@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { Layout, Menu } from 'antd';
+import { Affix, Dropdown, Layout, Menu, notification } from 'antd';
 import { Table, Row, Tag, Space, Image, Button, Form, Calendar, Collapse, Modal, Input, Badge, Select, TimePicker, Typography, message } from 'antd';
-import { UploadOutlined, UserOutlined, VideoCameraOutlined, PlusOutlined } from '@ant-design/icons';
+import { UploadOutlined, UserOutlined, VideoCameraOutlined, PlusOutlined, LogoutOutlined } from '@ant-design/icons';
 import padLeft from 'pad-left';
 import moment from 'moment';
 import { Link } from 'react-router-dom'
@@ -28,8 +28,14 @@ export default function NewSession() {
   const [endTime, setEndTime] = useState();
   const [endTime1, setEndTime1] = useState();
   const [currentDate, setCurrentDate] = useState();
+  const [currentDate1, setCurrentDate1] = useState();
   const [calendar, setCalendar] = useState();
   const [loading, setLoading] = useState(false);
+  const [submitFlag, setSubmitFlag] = useState(false)
+  const [prepareStartTime, setPrepareStartTime] = useState()
+  const [chooseStartDate, setChooseStartDate] = useState();
+  const [top, setTop] = useState(0);
+
 
   const [sessionForm] = Form.useForm()
 
@@ -44,12 +50,16 @@ export default function NewSession() {
       dataIndex: 'startTime',
       key: 'startTime',
       render: (text) => {
-        const date1 = padLeft(text[1], 2, '0')
-        const date2 = padLeft(text[2], 2, '0')
-        const date = date2 + "/" + date1 + "/" + text[0]
-        return (
-          <Text>{date}</Text>
-        );
+        if (text != null) {
+          const date1 = padLeft(text[1], 2, '0')
+          const date2 = padLeft(text[2], 2, '0')
+          const date = date2 + "/" + date1 + "/" + text[0]
+          return (
+            <Text>{date}</Text>
+          );
+        } else {
+          return (<Text></Text>)
+        }
       },
     },
     {
@@ -57,11 +67,15 @@ export default function NewSession() {
       dataIndex: 'startTime',
       key: 'startTime',
       render: (text) => {
-        const pad3 = padLeft(text[3], 2, '0')
-        const pad4 = padLeft(text[4], 2, '0')
-        return (
-          <Text>{pad3}:{pad4}</Text>
-        );
+        if (text != null) {
+          const pad3 = padLeft(text[3], 2, '0')
+          const pad4 = padLeft(text[4], 2, '0')
+          return (
+            <Text>{pad3}:{pad4}</Text>
+          );
+        } else {
+          return (<Text></Text>)
+        }
       },
     },
     {
@@ -69,22 +83,16 @@ export default function NewSession() {
       dataIndex: 'endTime',
       key: 'endTime',
       render: (text) => {
-        const pad3 = padLeft(text[3], 2, '0')
-        const pad4 = padLeft(text[4], 2, '0')
-        return (
-          <Text>{pad3}:{pad4}</Text>
-        );
+        if (text != null) {
+          const pad3 = padLeft(text[3], 2, '0')
+          const pad4 = padLeft(text[4], 2, '0')
+          return (
+            <Text>{pad3}:{pad4}</Text>
+          );
+        } else {
+          return (<Text></Text>)
+        }
       },
-    },
-    {
-      title: 'Action',
-      key: 'action',
-      render: () => (
-        <Space size="middle">
-          <a>Update</a>
-          <a>Delete</a>
-        </Space>
-      ),
     },
   ];
 
@@ -101,7 +109,7 @@ export default function NewSession() {
         const formatedDate = startDate[0] + "/" + date1 + "/" + date2;
         if (data == formatedDate) {
           listData = [
-            { type: 'warning', content: 'You have appoiment on this day', },
+            { type: 'warning', content: 'You have session on this day', },
           ];
         }
       }
@@ -179,6 +187,12 @@ export default function NewSession() {
 
   function onOkStartTime(values) {
     const startTime = values.format('HH:mm:ss');
+    const prepareStartTime = values.format("YYYYMMDDHHmm")
+    const current = moment().format("YYYYMMDD")
+    const chooseDate = values.format("HHmm")
+    const chooseDate1 = currentDate1 + chooseDate
+    setPrepareStartTime(prepareStartTime)
+    setChooseStartDate(chooseDate1)
     const adding = moment(values).add(sessionTime, 'm').toArray();
     const hour = padLeft(adding[3], 2, '0')
     const minute = padLeft(adding[4], 2, '0')
@@ -197,8 +211,10 @@ export default function NewSession() {
   }
 
   const showModal = (value) => {
-    setCalendar(value)
+    console.log(value)
+    setCalendar(value.format("YYYYMMDD"))
     const date = value.format('YYYY-MM-DDT')
+    const date1 = value.format('YYYYMMDD')
     const year = value.format('YYYY')
     const yearint = parseInt(year, 10);
     const month = value.format('MM')
@@ -218,19 +234,23 @@ export default function NewSession() {
     //     }
     //   })
     // }
-    while (appointmentModalData1.length > 0) {
-      appointmentModalData1.pop();
+
+    if (appointmentData.length != 0) {
+      setAppointmentModalData1([])
+      appointmentData.map(appointmentData => {
+        const date = [appointmentData.startTime[0], appointmentData.startTime[1], appointmentData.startTime[2]]
+        if (JSON.stringify(date) === JSON.stringify(arr)) {
+          // tableData = [...appointmentData]
+          console.log("you in")
+          // appointmentModalData1.push(appointmentData)
+          setAppointmentModalData1(appointmentModalData1 => [...appointmentModalData1, appointmentData])
+        }
+      })
+    } else {
+      setAppointmentModalData1([])
     }
-    appointmentData.map(appointmentData => {
-      const date = [appointmentData.startTime[0], appointmentData.startTime[1], appointmentData.startTime[2]]
-      if (JSON.stringify(date) == JSON.stringify(arr)) {
-        // tableData = [...appointmentData]
-        console.log("you in")
-        // appointmentModalData1.push(appointmentData)
-        setAppointmentModalData1(appointmentModalData1 => [...appointmentModalData1, appointmentData])
-      }
-    })
     setCurrentDate(date);
+    setCurrentDate1(date1)
     setIsModalVisible(true);
   };
 
@@ -238,58 +258,137 @@ export default function NewSession() {
     setSessionTime(value)
   }
 
+  const openNotification = () => {
+    notification.open({
+      message: 'Error while create session',
+      description:
+        'Session must be present or future',
+    });
+  };
+
+  const openNotification1 = () => {
+    notification.open({
+      message: 'Error while create session',
+      description:
+        'Session has been duplicated',
+    });
+  };
+
   function onSessionFormFinish(values) {
+    var flag1 = false;
+    var flag2 = false;
+    const currentDate = moment().format("YYYYMMDDHHmm")
+
     const lessonModalDatapreparedData = {
       ...values,
       ...appointmentModalData,
+      ...{ appointmentEndDate },
+      ...{ appointmentStartDate },
     }
-    async function createSession() {
-      setLoading(true);
-      try {
-        const result = await axios.post('https://hcmc.herokuapp.com/api/session/create', {
-          "endTime": appointmentEndDate,
-          "price": values.price,
-          "specialistId": id,
-          "startTime": appointmentStartDate,
-          "status": 1
-        },
-          { headers: { "content-type": "application/json", "Authorization": `Bearer ${token}` } }
-        )
-        if (result.status === 200) {
-          console.log("success")
-          // setAppointmentData(() =>
-          //   appointmentData.map(row => {
-          //     if (row.id === appointmentData.id) {
-          //       return {
-          //         ...row,
-          //         ...values
-          //       }
-          //     }
-          //     return row
-          //   })
-          // )
-          setLoading(false);
-          setIsModalVisible(false)
+
+    if (appointmentModalData1.length == 0) {
+      flag1 = true
+    } else {
+      console.log(chooseStartDate)
+      appointmentModalData1.map(element => {
+        const endDate = element.endTime
+        const date1 = padLeft(endDate[1], 2, '0')
+        const date2 = padLeft(endDate[2], 2, '0')
+        const date3 = padLeft(endDate[3], 2, '0')
+        const date4 = padLeft(endDate[4], 2, '0')
+        var endDate1 = endDate[0] + "" + date1 + "" + date2 + "" + date3 + "" + date4
+        const startDate = element.startTime
+        const startdate1 = padLeft(startDate[1], 2, '0')
+        const startdate2 = padLeft(startDate[2], 2, '0')
+        const startdate3 = padLeft(startDate[3], 2, '0')
+        const startdate4 = padLeft(startDate[4], 2, '0')
+        var startDate5 = startDate[0] + "" + startdate1 + "" + startdate2 + "" + startdate3 + "" + startdate4
+        console.log("end date", endDate1)
+        console.log("start date", startDate5)
+        if (chooseStartDate >= startDate5 && chooseStartDate <= endDate1) {
+          flag1 = false
+          openNotification1()
         } else {
-          message.error({
-            content: 'Something went wrong!',
-            style: {
-              position: 'fixed',
-              bottom: '10px',
-              left: '50%'
-            }
-          })
+          flag1 = true
         }
-      } catch (e) {
-        console.log(e)
-      }
+      })
+
     }
-    createSession();
+    console.log("choose Start date", chooseStartDate)
+    console.log("current date", currentDate)
+    if (chooseStartDate - currentDate < 0) {
+      flag2 = false
+      openNotification()
+    } else {
+      flag2 = true
+    }
+
+    if (flag1 == true && flag2 == true) {
+      async function createSession() {
+        setLoading(true);
+        try {
+          const result = await axios.post('https://hcmc.herokuapp.com/api/session/create', {
+            "endTime": appointmentEndDate,
+            "price": values.price,
+            "specialistId": id,
+            "startTime": appointmentStartDate,
+            "status": 1
+          },
+            { headers: { "content-type": "application/json", "Authorization": `Bearer ${token}` } }
+          )
+          if (result.status === 200) {
+            console.log("success")
+            await axios.get(`https://hcmc.herokuapp.com/api/session/${id}`,
+              { headers: { "content-type": "application/json", "Authorization": `Bearer ${token}` } },
+            ).then(res => {
+              const tableData = res.data.map(appointment => ({
+                ...appointment
+              }))
+              setAppointmentData(tableData)
+              setEndTime('00:00')
+            }).catch(error => {
+              console.log(error)
+            })
+            setLoading(false);
+            setIsModalVisible(false)
+          } else {
+            message.error({
+              content: 'Something went wrong!',
+              style: {
+                position: 'fixed',
+                bottom: '10px',
+                left: '50%'
+              }
+            })
+          }
+        } catch (e) {
+          console.log(e)
+        }
+      }
+      createSession();
+    }
   }
 
   const handleCancel = () => {
     setIsModalVisible(false);
   };
+
+
+  const menu = (
+    <Menu>
+      <Menu.Item key="1" icon={<UserOutlined />}>
+        <Link to="/profile">Profile</Link>
+      </Menu.Item>
+      <Menu.Item key="2" icon={<LogoutOutlined />} onClick={() => onClickLogout()}>
+        <Link to="/">Logout</Link>
+      </Menu.Item>
+    </Menu>
+  );
+
+  function onClickLogout() {
+    localStorage.setItem('token', "");
+    localStorage.setItem('id', "");
+  }
 
   const format = 'HH:mm';
 
@@ -321,7 +420,17 @@ export default function NewSession() {
         </Menu>
       </Sider>
       <Layout>
-        <Header className="site-layout-sub-header-background" style={{ padding: 0 }} />
+        <Affix offsetTop={top}>
+          <Header className="site-layout-sub-header-background" style={{ padding: 0 }} >
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', padding: 10, paddingRight: 20 }}>
+              <Dropdown overlay={menu} trigger={['click']}>
+                <Button shape="circle" size="large">
+                  <UserOutlined />
+                </Button>
+              </Dropdown>
+            </div>
+          </Header>
+        </Affix>
         <Content style={{ margin: '24px 16px 0' }}>
           <div className="site-layout-background" style={{ padding: 24, minHeight: 360 }}>
 
@@ -357,6 +466,7 @@ export default function NewSession() {
                       placeholder="Choose Session Time"
                       style={{ width: "100%", }}
                       onChange={onSelectSession} >
+                      <Select.Option value="3">3 Minutes</Select.Option>
                       <Select.Option value="15">15 Minutes</Select.Option>
                       <Select.Option value="30">30 Minutes</Select.Option>
                       <Select.Option value="60">1 Hour</Select.Option>
@@ -365,9 +475,7 @@ export default function NewSession() {
                 </Form.Item>
                 <Form.Item
                   name="startTime">
-                  <div style={{ width: "100%", paddingBottom: 20 }}>
-                    <TimePicker style={{ width: "100%", }} format={format} onOk={onOkStartTime} />
-                  </div>
+                  <TimePicker style={{ width: "100%", }} format={format} onOk={onOkStartTime} />
                 </Form.Item>
                 <Form.Item
                   name="endTime">

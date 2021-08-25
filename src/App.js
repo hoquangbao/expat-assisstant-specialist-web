@@ -9,6 +9,7 @@ import StartAppointment from "./view/StartAppointment"
 import NewSession from "./view/NewSession";
 import Register from "./view/Register";
 import MyAppointment from "./view/MyAppoinment";
+import Profile from "./view/Profile";
 import "./dist/css/app.css"
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
           <Route path="/startappointment" component={(props) => <StartAppointment  {...props} />} />
           <Route path="/register" component={(props) => <Register  {...props} />} />
           <Route path="/myappointment" component={(props) => <MyAppointment  {...props} />} />
+          <Route path="/profile" component={(props) => <Profile  {...props} />} />
           <Redirect from="*" to="/" />
         </Switch>
       </Router>

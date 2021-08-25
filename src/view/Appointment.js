@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { Layout, Menu } from 'antd';
+import { Affix, Dropdown, Layout, Menu } from 'antd';
 import { Table, Row, Tag, Space, Image, Button, Calendar, Collapse, Modal, Input, Typography } from 'antd';
 import padLeft from 'pad-left';
-import { UploadOutlined, UserOutlined, VideoCameraOutlined, PlusOutlined } from '@ant-design/icons';
+import { UploadOutlined, UserOutlined, VideoCameraOutlined, PlusOutlined, LogoutOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom'
 import axios from 'axios';
 import '../dist/css/homepage.css'
@@ -16,7 +16,9 @@ const { Text, Title } = Typography
 
 export default function Appointment() {
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [top, setTop] = useState(0);
   const [appointmentData, setAppointmentData] = useState([]);
+  const [appoinmentId, setAppointmentId] = useState();
   const [startTime, setStartTime] = useState([]);
   const [endDate, setEndDate] = useState();
 
@@ -67,21 +69,11 @@ export default function Appointment() {
       key: 'price',
     },
     {
-      title: 'Action',
-      key: 'action',
-      render: () => (
-        <Space size="middle">
-          <a>Update</a>
-          <a>Cancel</a>
-        </Space>
-      ),
-    },
-    {
       title: '',
       key: '',
-      render: () => (
+      render: (record) => (
         <Space size="middle">
-          <Button type="primary" onClick={onClick} >Start appointment</Button>
+          <Button type="primary" onClick={() => onClick(record)} >Start appointment</Button>
         </Space>
       ),
     },
@@ -98,13 +90,55 @@ export default function Appointment() {
           //   ...appointment
           // }))
           // const tableData1 = []
+          var m = new Date();
+          const getMonth = padLeft((m.getMonth() + 1), 2, '0')
+          const getUTCDate = padLeft(m.getDate(), 2, '0')
+          const hour = padLeft(m.getHours(), 2, 0)
+          const minute = padLeft(m.getMinutes(), 2, 0)
+          var dateString = m.getFullYear() + "" + getMonth + "" + getUTCDate + "" + hour + "" + minute
+          console.log("current date", dateString)
           res.data.forEach(element => {
+            const endDate = element.session.endTime
+            const date1 = padLeft(endDate[1], 2, '0')
+            const date2 = padLeft(endDate[2], 2, '0')
+            const date3 = padLeft(endDate[3], 2, '0')
+            const date4 = padLeft(endDate[4], 2, '0')
+            var endDate1 = endDate[0] + "" + date1 + "" + date2 + "" + date3 + "" + date4
+            console.log("end date:", endDate1)
+            //202108212235  -  202108212216
             if (element.channelName != null || element.channelName != undefined) {
-              if (element.status == 1) {
-                setAppointmentData(appointmentData => [...appointmentData, element.session])
+              if (element.status == 1 && endDate1 > dateString) {
+                const channelName = element.channelName
+                const comment = element.comment
+                const conAppId = element.conAppId
+                const createDate = element.createDate
+                const expatId = element.expat.id
+                const language = element.language
+                const majorId = element.major.majorId
+                const rating = element.rating
+                const endTime = element.session.endTime
+                const startTime = element.session.startTime
+                const price = element.session.price
+                const status = element.status
+                var data1 = {
+                  channelName,
+                  comment,
+                  conAppId,
+                  createDate,
+                  expatId,
+                  language,
+                  majorId,
+                  rating,
+                  startTime,
+                  endTime,
+                  price,
+                  status,
+                }
+                setAppointmentData(appointmentData => [...appointmentData, data1])
               }
             }
           });
+
           // setAppointmentData(tableData)
           console.log(res)
         }).catch(error => {
@@ -131,8 +165,25 @@ export default function Appointment() {
     setIsModalVisible(false);
   };
 
-  function onClick() {
-    window.open('http://localhost:3000/startappointment/31')
+  function onClick(record) {
+    window.open(`http://localhost:3000/startappointment/${record.conAppId}`,)
+  }
+
+
+  const menu = (
+    <Menu>
+      <Menu.Item key="1" icon={<UserOutlined />}>
+        <Link to="/profile">Profile</Link>
+      </Menu.Item>
+      <Menu.Item key="2" icon={<LogoutOutlined />} onClick={() => onClickLogout()}>
+        <Link to="/">Logout</Link>
+      </Menu.Item>
+    </Menu>
+  );
+
+  function onClickLogout() {
+    localStorage.setItem('token', "");
+    localStorage.setItem('id', "");
   }
 
   return (
@@ -163,10 +214,20 @@ export default function Appointment() {
         </Menu>
       </Sider>
       <Layout>
-        <Header className="site-layout-sub-header-background" style={{ padding: 0 }} />
+        <Affix offsetTop={top}>
+          <Header className="site-layout-sub-header-background" style={{ padding: 0 }} >
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', padding: 10, paddingRight: 20 }}>
+              <Dropdown overlay={menu} trigger={['click']}>
+                <Button shape="circle" size="large">
+                  <UserOutlined />
+                </Button>
+              </Dropdown>
+            </div>
+          </Header>
+        </Affix>
         <Content style={{ margin: '24px 16px 0' }}>
           <div className="site-layout-background" style={{ padding: 24, minHeight: 360 }}>
-            <Title level={3}>My Appointment</Title>
+            <Title level={3}>Upcomming Appointment</Title>
             <Table columns={columns} dataSource={appointmentData} />
           </div>
         </Content>
